@@ -299,6 +299,15 @@ export default function Dashboard() {
           </div>
         </section>
 
+        <footer className="pt-8 pb-6 text-center text-xs text-zinc-600 border-t border-zinc-800/50 space-y-1">
+          <p>
+            <a href="https://github.com/gunr1984-jonost/tilon" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400">Open source</a>
+            {" · "}
+            <a href="https://t.me/PikudHaOref_all" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400">Data: @PikudHaOref_all</a>
+            {" · "}Independent — not affiliated with Pikud HaOref
+          </p>
+          <p>For life-safety alerts use the <a href="https://www.oref.org.il" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 underline underline-offset-2">official Oref channels</a></p>
+        </footer>
 
       </div>
     </div>
