@@ -1,8 +1,18 @@
 # Tilon — Alert Monitor
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/gunr1984-jonost/tilon?style=flat)](https://github.com/gunr1984-jonost/tilon/stargazers)
+[![Live Site](https://img.shields.io/badge/live-homefront.protocol22.com-blue)](https://homefront.protocol22.com)
+
 Real-time dashboard tracking Israeli Home Front Command (Pikud HaOref) alerts, sourced from the public Telegram channel [@PikudHaOref_all](https://t.me/PikudHaOref_all).
 
 Public URL: **[homefront.protocol22.com](https://homefront.protocol22.com)**
+
+## Disclaimer
+
+This is an independent, unofficial tool built for personal and civic use. Data is sourced from the public [@PikudHaOref_all](https://t.me/PikudHaOref_all) Telegram channel and processed locally. It is not affiliated with or endorsed by the Israeli Home Front Command (Pikud HaOref).
+
+**For real-time life-safety alerts, always use official channels: the [Pikud HaOref app](https://www.oref.org.il), official website, and Home Front Command notifications.** This tool does not guarantee uptime or accuracy during critical events.
 
 ## Features
 
