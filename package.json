@@ -1,0 +1,30 @@
+{
+  "name": "homefront",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "import-history": "tsx scripts/import-history.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "input": "^1.0.1",
+    "next": "16.1.7",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "recharts": "^3.8.0",
+    "telegram": "^2.26.22"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}

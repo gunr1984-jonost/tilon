@@ -1,0 +1,29 @@
+services:
+  homefront:
+    image: homefront:latest
+    container_name: homefront
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./data:/app/data
+    mem_limit: 512m
+    env_file: .env
+    environment:
+      TZ: Asia/Jerusalem   # set to your local timezone
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  cloudflared:
+    # Pin to a specific digest to prevent unexpected updates.
+    # Find the latest: https://hub.docker.com/r/cloudflare/cloudflared/tags
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    # Get your tunnel token from Cloudflare Zero Trust → Networks → Tunnels
+    command: tunnel --no-autoupdate run --token YOUR_CLOUDFLARE_TUNNEL_TOKEN
+    network_mode: host
