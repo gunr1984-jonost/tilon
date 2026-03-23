@@ -16,7 +16,7 @@ This is an independent, unofficial tool built for personal and civic use. Data i
 
 ## Features
 
-- **Region selector** — dropdown to choose from **Tel Aviv, Givatayim, Rehovot, Ra'anana, Ness Ziyona** (city views) or **Nationwide** (all of Israel); all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
+- **Region selector** — dropdown with 10 city views (Tel Aviv, Givatayim, Rehovot, Ra'anana, Ness Ziyona, Etz Efraim, Rishon LeZion East/West, Netaim, Ein Hod) plus **Nationwide**; all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
 - **Live status** — current alert state (Active Siren / Pre-Alert / All Clear) with pulsing indicator; shown for city scopes only (hidden in Nationwide view)
 - **10s polling** — browser refreshes every 10 seconds; API responses are Cloudflare-edge-cached (`s-maxage=5–30` depending on route) so origin load is constant regardless of concurrent users; HTML shell is served `no-store` so deploys are always picked up immediately
 - **Automatic catch-up** — on every restart, syncs all messages since the last known Telegram message ID so no alerts are missed
@@ -184,6 +184,11 @@ All API routes accept `?scope=<value>` (default: `tel-aviv`). Valid values:
 | `rehovot` | `raw_text LIKE '%רחובות%'` | Rehovot |
 | `raanana` | `raw_text LIKE '%רעננה%'` | Ra'anana |
 | `ness-ziyona` | `raw_text LIKE '%נס ציונה%'` | Ness Ziyona |
+| `etz-efraim` | `raw_text LIKE '%עץ אפרים%'` | Etz Efraim |
+| `rishon-lezion-east` | `raw_text LIKE '%ראשון לציון - מזרח%'` | Rishon LeZion East |
+| `rishon-lezion-west` | `raw_text LIKE '%ראשון לציון - מערב%'` | Rishon LeZion West |
+| `netaim` | `raw_text LIKE '%נטעים%'` | Netaim |
+| `ein-hod` | `raw_text LIKE '%עין הוד%'` | Ein Hod |
 | `national` | `state != 'OTHER'` | All areas |
 
 City filtering is applied at query time against `raw_text` — no schema migration needed, works on all historical data. City scopes also filter `state != 'OTHER'` on top of the LIKE filter.
