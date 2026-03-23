@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   const secret = process.env.WORKER_SECRET ?? "";
-  if (secret && req.headers.get("x-worker-secret") !== secret) {
+  if (!secret || req.headers.get("x-worker-secret") !== secret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

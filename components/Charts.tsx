@@ -162,7 +162,7 @@ export default function Charts({
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const startDate = days > 0 ? addDays(today, -days) : (daily[0]?.date ?? nightly[0]?.night_date ?? today);
+  const startDate = days > 0 ? addDays(today, -(days - 1)) : (daily[0]?.date ?? nightly[0]?.night_date ?? today);
 
   const granularity: "day" | "week" | "month" | "year" =
     days === 0              ? "year"  :

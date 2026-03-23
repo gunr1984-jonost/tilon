@@ -16,6 +16,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV TZ=Asia/Jerusalem
 
 RUN apk add --no-cache tzdata && addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 

@@ -6,7 +6,8 @@ import Timeline from "@/components/Timeline";
 import Charts, { type ChartView } from "@/components/Charts";
 import ThreatClock from "@/components/ThreatClock";
 import type { AlertState, AlertRow } from "@/lib/db";
-import type { DailyStat, NightlyStat, Scope } from "@/lib/queries";
+import type { DailyStat, NightlyStat } from "@/lib/queries";
+import { SCOPE_OPTIONS, type Scope } from "@/lib/regions";
 
 function isNight(unixSecs: number): boolean {
   const d = new Date(unixSecs * 1000);
@@ -99,7 +100,7 @@ export default function Dashboard() {
 
   const [fetchError, setFetchError] = useState(false);
 
-  const [scope, setScope]           = useState<Scope>("local");
+  const [scope, setScope]           = useState<Scope>("tel-aviv");
   const [period, setPeriod]         = useState(getWarDays);
   const [chartView, setChartView]   = useState<ChartView>("type");
   const [tlFilter, setTlFilter]     = useState<TimelineFilter>("all");
@@ -180,19 +181,8 @@ export default function Dashboard() {
       <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
 
         {/* Header */}
-        <div className="text-center space-y-2">
+        <div className="text-center">
           <pre className="text-zinc-300 text-[0.6rem] leading-tight font-mono inline-block text-left">{`  _______ __          \n /_  __(_) /___  ____ \n  / / / / / __ \\/ __ \\\n / / / / / /_/ / / / /\n/_/ /_/_/\\____/_/ /_/ `}</pre>
-          <p className="text-xs text-zinc-600 uppercase tracking-[0.2em] font-mono">
-            {scope === "local" ? "Tel Aviv · City Center" : "Nationwide · Israel"}
-          </p>
-          <Tabs<Scope>
-            value={scope}
-            onChange={setScope}
-            options={[
-              { label: "Tel Aviv", value: "local"    },
-              { label: "Nationwide", value: "national" },
-            ]}
-          />
         </div>
 
         {/* Error banner */}
@@ -203,8 +193,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Status — local only */}
-        {scope === "local" && (
+        {/* Status — city scopes only */}
+        {scope !== "national" && (
           <section className="flex flex-col items-center">
             <StatusBadge status={status} />
           </section>
@@ -212,8 +202,16 @@ export default function Dashboard() {
 
         {/* Period + Stats */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-600 uppercase tracking-widest">Period</span>
+          <div className="flex items-center justify-between gap-3">
+            <select
+              value={scope}
+              onChange={(e) => setScope(e.target.value as Scope)}
+              className="px-3 py-1 rounded-md text-xs font-medium bg-zinc-800 text-zinc-100 border border-zinc-700 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            >
+              {SCOPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
             <Tabs<number>
               value={period}
               onChange={setPeriod}
@@ -221,12 +219,12 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className={`grid grid-cols-2 ${scope === "local" ? "sm:grid-cols-5" : "sm:grid-cols-4"} gap-3`}>
+          <div className={`grid grid-cols-2 ${scope !== "national" ? "sm:grid-cols-5" : "sm:grid-cols-4"} gap-3`}>
             <StatTile label="Sirens"           value={totalSirens}      color="text-red-400" />
             <StatTile label="Night sirens"     value={totalNightSirens} color="text-indigo-400" />
             <StatTile label="Pre-alerts"       value={totalPreAlerts}   color="text-amber-400" />
             <StatTile label="Nights disrupted" value={nightsDisrupted}  color="text-zinc-300" hint="≥1 siren 21:00–06:30" />
-            {scope === "local" && (
+            {scope !== "national" && (
               <StatTile
                 label="Avg saferoom"
                 value={avgSaferoomSecs !== null ? formatSaferoomTime(avgSaferoomSecs) : "—"}

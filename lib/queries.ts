@@ -1,18 +1,32 @@
 import { getDb, AlertRow, AlertState } from "./db";
+import { CITY_REGIONS, type CityScope, type Scope } from "./regions";
+
+export type { Scope, CityScope };
+export { CITY_REGIONS };
 
 const VALID_STATES = new Set<AlertState>(["PRE_ALERT", "ACTIVE_SIREN", "ALL_CLEAR", "OTHER"]);
 
-export type Scope = "local" | "national";
+const VALID_SCOPES = new Set<Scope>([
+  "national",
+  ...Object.keys(CITY_REGIONS) as CityScope[],
+]);
+
+/** Parses and validates a ?scope= query param. Falls back to "tel-aviv". */
+export function parseScope(param: string | null): Scope {
+  if (param && VALID_SCOPES.has(param as Scope)) return param as Scope;
+  return "tel-aviv";
+}
 
 /**
  * Returns a SQL fragment for the given scope, for use at the start of a WHERE condition.
- * Local:    `"relevant = 1 AND "` — restricts to target area
- * National: `"state != 'OTHER' AND "` — all areas, excluding informational messages
+ * National:  `"state != 'OTHER' AND "`
+ * City:      `"raw_text LIKE '%<hebrew>%' AND state != 'OTHER' AND "`
  */
 function andScope(scope: Scope, alias?: string): string {
   if (scope === "national") return "state != 'OTHER' AND ";
-  const col = alias ? `${alias}.relevant` : "relevant";
-  return `${col} = 1 AND `;
+  const hebrew = CITY_REGIONS[scope as CityScope];
+  const textCol = alias ? `${alias}.raw_text` : "raw_text";
+  return `${textCol} LIKE '%${hebrew}%' AND state != 'OTHER' AND `;
 }
 
 // ---------- meta helpers ----------
@@ -101,7 +115,7 @@ export function getMaxMsgId(): number {
 }
 
 // days = 0 means all time
-export function getLatestRelevant(limit = 50, days = 0, scope: Scope = "local"): AlertRow[] {
+export function getLatestRelevant(limit = 50, days = 0, scope: Scope = "tel-aviv"): AlertRow[] {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}sent_at >= strftime('%s', 'now', '-${days} days')`
@@ -112,7 +126,7 @@ export function getLatestRelevant(limit = 50, days = 0, scope: Scope = "local"):
 }
 
 /** Returns the most recent non-OTHER alert state for the given scope */
-export function getCurrentStatus(scope: Scope = "local"): AlertState {
+export function getCurrentStatus(scope: Scope = "tel-aviv"): AlertState {
   const row = getDb()
     .prepare(
       `SELECT state FROM alerts
@@ -139,7 +153,7 @@ const NIGHT_EXPR = `(
 )`;
 
 // days = 0 means all time
-export function getDailyStats(days = 30, scope: Scope = "local"): DailyStat[] {
+export function getDailyStats(days = 30, scope: Scope = "tel-aviv"): DailyStat[] {
   // Snap to start of day and offset by (days-1) so we get exactly `days`
   // calendar bars including today — avoids a partial day at the start
   // (e.g. days=7 → midnight 6 days ago → 7 full date bars, not 8)
@@ -175,7 +189,7 @@ export interface NightlyStat {
  * - sirens >= 21:00 → that calendar date
  * - sirens < 06:30  → previous calendar date (still the same night)
  */
-export function getNightlyStats(days = 30, scope: Scope = "local"): NightlyStat[] {
+export function getNightlyStats(days = 30, scope: Scope = "tel-aviv"): NightlyStat[] {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}state = 'ACTIVE_SIREN'
@@ -210,44 +224,55 @@ export function getNightlyStats(days = 30, scope: Scope = "local"): NightlyStat[
  * saferoom time starts when the first siren is received. Only completed sequences
  * (those with a following ALL_CLEAR within 30 min) are included.
  */
-export function getAvgSaferoomSecs(days = 0, scope: Scope = "local"): number | null {
+export function getAvgSaferoomSecs(days = 0, scope: Scope = "tel-aviv"): number | null {
   // Nationwide pairing (any ALL_CLEAR ↔ any ACTIVE_SIREN across all areas) is
   // not meaningful, so we return null and let the UI show "—".
   if (scope === "national") return null;
 
-  const dayFilter =
-    days > 0
-      ? `AND s.sent_at >= strftime('%s', 'now', '-${days} days')`
-      : "";
-  // For each ALL_CLEAR, find the first ACTIVE_SIREN in the same event sequence
-  // (i.e. after the previous ALL_CLEAR). That is the moment someone first entered
-  // the saferoom. Additional sirens before the all-clear are part of the same
-  // sequence and don't reset the clock.
+  const hebrew = CITY_REGIONS[scope as CityScope];
+  const dayFilter = days > 0
+    ? `AND sent_at >= strftime('%s', 'now', '-${days} days')`
+    : "";
+
+  // CTE approach: scan the table with LIKE exactly ONCE, then use window
+  // functions to group consecutive events into siren→all-clear sequences.
+  // Avoids the O(n²) correlated subquery of the naïve approach.
   const row = getDb()
     .prepare(
-      `SELECT AVG(clear_at - prev_siren) AS avg_secs
-       FROM (
-         SELECT c.sent_at AS clear_at,
-           (SELECT MIN(s.sent_at)
-            FROM alerts s
-            WHERE s.relevant = 1 AND s.state = 'ACTIVE_SIREN'
-              AND s.sent_at < c.sent_at
-              AND s.sent_at > COALESCE(
-                (SELECT MAX(pc.sent_at) FROM alerts pc
-                 WHERE pc.relevant = 1 AND pc.state = 'ALL_CLEAR'
-                   AND pc.sent_at < c.sent_at), 0)
-           ) AS prev_siren
-         FROM alerts c
-         WHERE c.relevant = 1 AND c.state = 'ALL_CLEAR' ${dayFilter.replace("s.sent_at", "c.sent_at")}
+      `WITH city_events AS (
+         SELECT sent_at, state
+         FROM alerts
+         WHERE raw_text LIKE '%${hebrew}%'
+           AND state IN ('ACTIVE_SIREN', 'ALL_CLEAR')
+           ${dayFilter}
+       ),
+       blocks AS (
+         SELECT sent_at, state,
+           COALESCE(
+             SUM(CASE WHEN state = 'ALL_CLEAR' THEN 1 ELSE 0 END)
+               OVER (ORDER BY sent_at ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),
+             0
+           ) AS block_id
+         FROM city_events
+       ),
+       block_stats AS (
+         SELECT block_id,
+           MIN(CASE WHEN state = 'ACTIVE_SIREN' THEN sent_at END) AS first_siren,
+           MAX(CASE WHEN state = 'ALL_CLEAR'    THEN sent_at END) AS clear_at
+         FROM blocks
+         GROUP BY block_id
+         HAVING first_siren IS NOT NULL AND clear_at IS NOT NULL
        )
-       WHERE prev_siren IS NOT NULL AND (clear_at - prev_siren) <= 1800`
+       SELECT AVG(clear_at - first_siren) AS avg_secs
+       FROM block_stats
+       WHERE (clear_at - first_siren) <= 1800`
     )
     .get() as { avg_secs: number | null };
   return row?.avg_secs ?? null;
 }
 
 // days = 0 means all time
-export function getTotalCount(days = 0, scope: Scope = "local"): number {
+export function getTotalCount(days = 0, scope: Scope = "tel-aviv"): number {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}sent_at >= strftime('%s', 'now', '-${days} days')`
@@ -260,7 +285,7 @@ export function getTotalCount(days = 0, scope: Scope = "local"): number {
 
 export interface HourlyCount { hour: number; count: number; }
 
-export function getHourlyStats(days = 0, scope: Scope = "local"): HourlyCount[] {
+export function getHourlyStats(days = 0, scope: Scope = "tel-aviv"): HourlyCount[] {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}state = 'ACTIVE_SIREN'

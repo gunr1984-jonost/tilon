@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Scope } from "@/lib/regions";
 
 interface HourlyData {
   days: number;
@@ -28,7 +29,7 @@ function heatColor(t: number): string {
 interface Props {
   period: number;       // days; 0 = all time
   periodLabel: string;  // e.g. "28/2", "1w", "All"
-  scope: "local" | "national";
+  scope: Scope;
 }
 
 export default function ThreatClock({ period, periodLabel, scope }: Props) {

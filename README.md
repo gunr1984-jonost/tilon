@@ -16,8 +16,8 @@ This is an independent, unofficial tool built for personal and civic use. Data i
 
 ## Features
 
-- **Scope toggle** — switch between **Tel Aviv city center** (local) and **Nationwide** (all of Israel) views; all stats, charts, and timeline update accordingly
-- **Live status** — current alert state (Active Siren / Pre-Alert / All Clear) with pulsing indicator; shown in Tel Aviv scope only
+- **Region selector** — dropdown to choose from **Tel Aviv, Givatayim, Rehovot, Ra'anana, Ness Ziyona** (city views) or **Nationwide** (all of Israel); all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
+- **Live status** — current alert state (Active Siren / Pre-Alert / All Clear) with pulsing indicator; shown for city scopes only (hidden in Nationwide view)
 - **10s polling** — browser refreshes every 10 seconds; API responses are Cloudflare-edge-cached (`s-maxage=5–30` depending on route) so origin load is constant regardless of concurrent users; HTML shell is served `no-store` so deploys are always picked up immediately
 - **Automatic catch-up** — on every restart, syncs all messages since the last known Telegram message ID so no alerts are missed
 - **Period picker** — 28/2 (since war began), 1w, 30d, 90d, All
@@ -25,7 +25,7 @@ This is an independent, unofficial tool built for personal and civic use. Data i
   - *By type* — Pre-alerts (amber) vs Sirens (red), side by side per column
   - *Night sirens* — sirens between 21:00–06:30 only (indigo)
 - **Scrollable timeline** — colour-coded event list with night indicators, filterable by All / Sirens / Night sirens; hover any row to see the full message text
-- **Stat tiles** — Sirens, Night sirens, Pre-alerts, Nights disrupted, Avg saferoom time (siren → all clear; Tel Aviv scope only)
+- **Stat tiles** — Sirens, Night sirens, Pre-alerts, Nights disrupted, Avg saferoom time (siren → all clear; city scopes only)
 - **Threat clock** — 24-hour radial heatmap showing which hours of the day have the most sirens; displays current time at centre
 - **Nationwide note** — in Nationwide view, a footnote explains that counts reflect Telegram message clusters (one message may cover multiple regions)
 
@@ -44,12 +44,12 @@ This is an independent, unofficial tool built for personal and civic use. Data i
 
 ```
 app/
-  page.tsx                   — dashboard (client component); scope toggle (local/national)
+  page.tsx                   — dashboard (client component); region dropdown + period picker
   api/
-    status/route.ts          — GET current status (?scope=local|national); lastSyncAt from meta table
-    alerts/route.ts          — GET recent alerts (?days=N&scope=local|national)
-    stats/route.ts           — GET daily counts + saferoom avg (?days=N&scope=local|national)
-    hourly-stats/route.ts    — GET hourly siren counts for ThreatClock (?days=N&scope=local|national)
+    status/route.ts          — GET current status (?scope=<city>|national); lastSyncAt from meta table
+    alerts/route.ts          — GET recent alerts (?days=N&scope=<city>|national)
+    stats/route.ts           — GET daily counts + saferoom avg (?days=N&scope=<city>|national)
+    hourly-stats/route.ts    — GET hourly siren counts for ThreatClock (?days=N&scope=<city>|national)
     sync/route.ts            — POST manual catch-up trigger (requires WORKER_SECRET header)
     internal/notify/route.ts — POST from worker → SSE broadcast (requires WORKER_SECRET header)
 
@@ -60,9 +60,10 @@ components/
   ThreatClock.tsx            — radial 24h siren heat map
 
 lib/
-  schema.sql                 — alerts table DDL
+  schema.sql                 — alerts + meta table DDL
   db.ts                      — better-sqlite3 singleton, WAL, auto-creates ./data/
-  queries.ts                 — all DB queries; all stat functions accept scope: "local"|"national"
+  regions.ts                 — shared scope constants (CITY_REGIONS, SCOPE_OPTIONS, etc.); no server imports, safe for client bundles
+  queries.ts                 — all DB queries; stat functions accept scope: CityScope | "national"
   classifier.ts              — Hebrew substring → state classification
   emitter.ts                 — EventEmitter for internal notify route
   telegram-service.ts        — Telegram connect, catch-up, live listener; writes last_sync_at to meta table
@@ -174,13 +175,23 @@ A message is marked `relevant = 1` only if it contains `תל אביב - מרכז
 
 ### Scope system
 
-All API routes and DB queries accept `?scope=local|national` (default: `local`):
-- **local** — filters `relevant = 1` (Tel Aviv city center only)
-- **national** — filters `state != 'OTHER'` (all areas, all alert types)
+All API routes accept `?scope=<value>` (default: `tel-aviv`). Valid values:
+
+| Scope | Filter | Hebrew match |
+|---|---|---|
+| `tel-aviv` | `raw_text LIKE '%תל אביב%'` | Tel Aviv |
+| `givatayim` | `raw_text LIKE '%גבעתיים%'` | Givatayim |
+| `rehovot` | `raw_text LIKE '%רחובות%'` | Rehovot |
+| `raanana` | `raw_text LIKE '%רעננה%'` | Ra'anana |
+| `ness-ziyona` | `raw_text LIKE '%נס ציונה%'` | Ness Ziyona |
+| `national` | `state != 'OTHER'` | All areas |
+
+City filtering is applied at query time against `raw_text` — no schema migration needed, works on all historical data. City scopes also filter `state != 'OTHER'` on top of the LIKE filter.
 
 Scope differences in the UI:
-- Status badge and Avg saferoom tile are hidden in Nationwide view
+- Status badge and Avg saferoom tile are shown for city scopes only (hidden in Nationwide)
 - A footnote explains Telegram message clustering in Nationwide view
+- Unknown `?scope=` values fall back silently to `tel-aviv`
 
 ### Live updates
 

@@ -11,3 +11,8 @@ CREATE TABLE IF NOT EXISTS alerts (
 CREATE INDEX IF NOT EXISTS idx_alerts_sent_at   ON alerts(sent_at DESC);
 CREATE INDEX IF NOT EXISTS idx_alerts_relevant  ON alerts(relevant, sent_at DESC);
 CREATE INDEX IF NOT EXISTS idx_alerts_state     ON alerts(state, relevant, sent_at DESC);
+
+CREATE TABLE IF NOT EXISTS meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
