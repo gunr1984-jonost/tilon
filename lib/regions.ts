@@ -1,6 +1,7 @@
 /** Shared region constants — no server imports, safe for client and server. */
 
 export const CITY_REGIONS = {
+  "bitzaron":           "ביצרון",
   "ein-hod":            "עין הוד",
   "etz-efraim":         "עץ אפרים",
   "givatayim":          "גבעתיים",
@@ -22,6 +23,7 @@ export type Scope = CityScope | "national";
 
 /** English display labels for the scope selector dropdown. */
 export const SCOPE_LABELS: Record<Scope, string> = {
+  "bitzaron":           "Bitzaron",
   "ein-hod":            "Ein Hod",
   "etz-efraim":         "Etz Efraim",
   "givatayim":          "Givatayim",
@@ -41,6 +43,7 @@ export const SCOPE_LABELS: Record<Scope, string> = {
 
 /** Short subtitle shown below the logo. */
 export const SCOPE_SUBTITLES: Record<Scope, string> = {
+  "bitzaron":           "Bitzaron · Israel",
   "ein-hod":            "Ein Hod · Israel",
   "etz-efraim":         "Etz Efraim · Israel",
   "givatayim":          "Givatayim · Israel",
@@ -60,6 +63,7 @@ export const SCOPE_SUBTITLES: Record<Scope, string> = {
 
 /** Ordered list for rendering the scope selector. */
 export const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
+  { value: "bitzaron",           label: "Bitzaron"            },
   { value: "ein-hod",            label: "Ein Hod"             },
   { value: "etz-efraim",         label: "Etz Efraim"          },
   { value: "givatayim",          label: "Givatayim"           },
