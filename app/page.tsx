@@ -24,7 +24,6 @@ function getWarDays() {
 
 const PERIODS: { label: string; days: number }[] = [
   { label: "28/2", days: getWarDays() },
-  { label: "1w",   days: 7            },
   { label: "2w",   days: 14           },
   { label: "All",  days: 0            },
 ];
