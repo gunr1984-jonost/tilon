@@ -16,11 +16,11 @@ This is an independent, unofficial tool built for personal and civic use. Data i
 
 ## Features
 
-- **Region selector** — dropdown with 11 city views (Ein Hod, Etz Efraim, Givatayim, Mevaseret Zion, Netaim, Ness Ziyona, Ra'anana, Rehovot, Rishon LeZion East/West, Tel Aviv) plus **Nationwide**; all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
+- **Region selector** — dropdown with 15 city views (Bitzaron, Ein Hod, Etz Efraim, Givatayim, Kfar Sava, Lod, Mevaseret Zion, Netaim, Ness Ziyona, Petah Tikva, Ra'anana, Rehovot, Rishon LeZion East/West, Tel Aviv) plus **Nationwide**; all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
 - **Live status** — current alert state (Active Siren / Pre-Alert / All Clear) with pulsing indicator; shown for city scopes only (hidden in Nationwide view)
 - **10s polling** — browser refreshes every 10 seconds; API responses are Cloudflare-edge-cached (`s-maxage=5–30` depending on route) so origin load is constant regardless of concurrent users; HTML shell is served `no-store` so deploys are always picked up immediately
 - **Automatic catch-up** — on every restart, syncs all messages since the last known Telegram message ID so no alerts are missed
-- **Period picker** — 28/2 (since war began), 1w, 2w, All
+- **Period picker** — 28/2 (since war began), 2w, All
 - **Bar charts** with auto-scaling granularity (daily / weekly / monthly):
   - *By type* — Pre-alerts (amber) vs Sirens (red), side by side per column
   - *Night sirens* — sirens between 21:00–06:30 only (indigo)
@@ -179,12 +179,16 @@ All API routes accept `?scope=<value>` (default: `tel-aviv`). Valid values:
 
 | Scope | Filter | Hebrew match |
 |---|---|---|
+| `bitzaron` | `raw_text LIKE '%ביצרון%'` | Bitzaron |
 | `ein-hod` | `raw_text LIKE '%עין הוד%'` | Ein Hod |
 | `etz-efraim` | `raw_text LIKE '%עץ אפרים%'` | Etz Efraim |
 | `givatayim` | `raw_text LIKE '%גבעתיים%'` | Givatayim |
+| `kfar-sava` | `raw_text LIKE '%כפר סבא%'` | Kfar Sava |
+| `lod` | `raw_text LIKE '%לוד%'` | Lod |
 | `mevaseret-zion` | `raw_text LIKE '%מבשרת ציון%'` | Mevaseret Zion |
 | `netaim` | `raw_text LIKE '%נטעים%'` | Netaim |
 | `ness-ziyona` | `raw_text LIKE '%נס ציונה%'` | Ness Ziyona |
+| `petah-tikva` | `raw_text LIKE '%פתח תקווה%'` | Petah Tikva |
 | `raanana` | `raw_text LIKE '%רעננה%'` | Ra'anana |
 | `rehovot` | `raw_text LIKE '%רחובות%'` | Rehovot |
 | `rishon-lezion-east` | `raw_text LIKE '%ראשון לציון - מזרח%'` | Rishon LeZion East |
@@ -214,7 +218,7 @@ The bar chart auto-selects granularity based on the selected period, and always 
 
 | Period | Granularity |
 |---|---|
-| 28/2, 1w, 2w | Daily |
+| 28/2, 2w | Daily |
 | All | Yearly |
 
 ### Night definition
