@@ -16,11 +16,11 @@ This is an independent, unofficial tool built for personal and civic use. Data i
 
 ## Features
 
-- **Region selector** — dropdown with 10 city views (Tel Aviv, Givatayim, Rehovot, Ra'anana, Ness Ziyona, Etz Efraim, Rishon LeZion East/West, Netaim, Ein Hod) plus **Nationwide**; all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
+- **Region selector** — dropdown with 11 city views (Ein Hod, Etz Efraim, Givatayim, Mevaseret Zion, Netaim, Ness Ziyona, Ra'anana, Rehovot, Rishon LeZion East/West, Tel Aviv) plus **Nationwide**; all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
 - **Live status** — current alert state (Active Siren / Pre-Alert / All Clear) with pulsing indicator; shown for city scopes only (hidden in Nationwide view)
 - **10s polling** — browser refreshes every 10 seconds; API responses are Cloudflare-edge-cached (`s-maxage=5–30` depending on route) so origin load is constant regardless of concurrent users; HTML shell is served `no-store` so deploys are always picked up immediately
 - **Automatic catch-up** — on every restart, syncs all messages since the last known Telegram message ID so no alerts are missed
-- **Period picker** — 28/2 (since war began), 1w, 30d, 90d, All
+- **Period picker** — 28/2 (since war began), 1w, 2w, All
 - **Bar charts** with auto-scaling granularity (daily / weekly / monthly):
   - *By type* — Pre-alerts (amber) vs Sirens (red), side by side per column
   - *Night sirens* — sirens between 21:00–06:30 only (indigo)
@@ -179,16 +179,17 @@ All API routes accept `?scope=<value>` (default: `tel-aviv`). Valid values:
 
 | Scope | Filter | Hebrew match |
 |---|---|---|
-| `tel-aviv` | `raw_text LIKE '%תל אביב%'` | Tel Aviv |
-| `givatayim` | `raw_text LIKE '%גבעתיים%'` | Givatayim |
-| `rehovot` | `raw_text LIKE '%רחובות%'` | Rehovot |
-| `raanana` | `raw_text LIKE '%רעננה%'` | Ra'anana |
-| `ness-ziyona` | `raw_text LIKE '%נס ציונה%'` | Ness Ziyona |
+| `ein-hod` | `raw_text LIKE '%עין הוד%'` | Ein Hod |
 | `etz-efraim` | `raw_text LIKE '%עץ אפרים%'` | Etz Efraim |
+| `givatayim` | `raw_text LIKE '%גבעתיים%'` | Givatayim |
+| `mevaseret-zion` | `raw_text LIKE '%מבשרת ציון%'` | Mevaseret Zion |
+| `netaim` | `raw_text LIKE '%נטעים%'` | Netaim |
+| `ness-ziyona` | `raw_text LIKE '%נס ציונה%'` | Ness Ziyona |
+| `raanana` | `raw_text LIKE '%רעננה%'` | Ra'anana |
+| `rehovot` | `raw_text LIKE '%רחובות%'` | Rehovot |
 | `rishon-lezion-east` | `raw_text LIKE '%ראשון לציון - מזרח%'` | Rishon LeZion East |
 | `rishon-lezion-west` | `raw_text LIKE '%ראשון לציון - מערב%'` | Rishon LeZion West |
-| `netaim` | `raw_text LIKE '%נטעים%'` | Netaim |
-| `ein-hod` | `raw_text LIKE '%עין הוד%'` | Ein Hod |
+| `tel-aviv` | `raw_text LIKE '%תל אביב%'` | Tel Aviv |
 | `national` | `state != 'OTHER'` | All areas |
 
 City filtering is applied at query time against `raw_text` — no schema migration needed, works on all historical data. City scopes also filter `state != 'OTHER'` on top of the LIKE filter.
@@ -213,9 +214,8 @@ The bar chart auto-selects granularity based on the selected period, and always 
 
 | Period | Granularity |
 |---|---|
-| 28/2, 1w, 30d | Daily |
-| 90d | Weekly |
-| All | Monthly |
+| 28/2, 1w, 2w | Daily |
+| All | Yearly |
 
 ### Night definition
 
