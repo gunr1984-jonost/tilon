@@ -2,6 +2,7 @@
 
 export const CITY_REGIONS = {
   "tel-aviv":           "תל אביב",
+  "mevaseret-zion":     "מבשרת ציון",
   "givatayim":          "גבעתיים",
   "rehovot":            "רחובות",
   "raanana":            "רעננה",
@@ -19,6 +20,7 @@ export type Scope = CityScope | "national";
 /** English display labels for the scope selector dropdown. */
 export const SCOPE_LABELS: Record<Scope, string> = {
   "tel-aviv":           "Tel Aviv",
+  "mevaseret-zion":     "Mevaseret Zion",
   "givatayim":          "Givatayim",
   "rehovot":            "Rehovot",
   "raanana":            "Ra'anana",
@@ -34,6 +36,7 @@ export const SCOPE_LABELS: Record<Scope, string> = {
 /** Short subtitle shown below the logo. */
 export const SCOPE_SUBTITLES: Record<Scope, string> = {
   "tel-aviv":           "Tel Aviv · Israel",
+  "mevaseret-zion":     "Mevaseret Zion · Israel",
   "givatayim":          "Givatayim · Israel",
   "rehovot":            "Rehovot · Israel",
   "raanana":            "Ra'anana · Israel",
@@ -49,6 +52,7 @@ export const SCOPE_SUBTITLES: Record<Scope, string> = {
 /** Ordered list for rendering the scope selector. */
 export const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
   { value: "tel-aviv",           label: "Tel Aviv"            },
+  { value: "mevaseret-zion",     label: "Mevaseret Zion"      },
   { value: "givatayim",          label: "Givatayim"           },
   { value: "rehovot",            label: "Rehovot"             },
   { value: "raanana",            label: "Ra'anana"            },
