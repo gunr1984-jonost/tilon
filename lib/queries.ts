@@ -11,10 +11,10 @@ const VALID_SCOPES = new Set<Scope>([
   ...Object.keys(CITY_REGIONS) as CityScope[],
 ]);
 
-/** Parses and validates a ?scope= query param. Falls back to "tel-aviv". */
+/** Parses and validates a ?scope= query param. Falls back to "tel-aviv-center". */
 export function parseScope(param: string | null): Scope {
   if (param && VALID_SCOPES.has(param as Scope)) return param as Scope;
-  return "tel-aviv";
+  return "tel-aviv-center";
 }
 
 /**
@@ -115,7 +115,7 @@ export function getMaxMsgId(): number {
 }
 
 // days = 0 means all time
-export function getLatestRelevant(limit = 50, days = 0, scope: Scope = "tel-aviv"): AlertRow[] {
+export function getLatestRelevant(limit = 50, days = 0, scope: Scope = "tel-aviv-center"): AlertRow[] {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}sent_at >= strftime('%s', 'now', '-${days} days')`
@@ -126,7 +126,7 @@ export function getLatestRelevant(limit = 50, days = 0, scope: Scope = "tel-aviv
 }
 
 /** Returns the most recent non-OTHER alert state for the given scope */
-export function getCurrentStatus(scope: Scope = "tel-aviv"): AlertState {
+export function getCurrentStatus(scope: Scope = "tel-aviv-center"): AlertState {
   const row = getDb()
     .prepare(
       `SELECT state FROM alerts
@@ -153,7 +153,7 @@ const NIGHT_EXPR = `(
 )`;
 
 // days = 0 means all time
-export function getDailyStats(days = 30, scope: Scope = "tel-aviv"): DailyStat[] {
+export function getDailyStats(days = 30, scope: Scope = "tel-aviv-center"): DailyStat[] {
   // Snap to start of day and offset by (days-1) so we get exactly `days`
   // calendar bars including today — avoids a partial day at the start
   // (e.g. days=7 → midnight 6 days ago → 7 full date bars, not 8)
@@ -189,7 +189,7 @@ export interface NightlyStat {
  * - sirens >= 21:00 → that calendar date
  * - sirens < 06:30  → previous calendar date (still the same night)
  */
-export function getNightlyStats(days = 30, scope: Scope = "tel-aviv"): NightlyStat[] {
+export function getNightlyStats(days = 30, scope: Scope = "tel-aviv-center"): NightlyStat[] {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}state = 'ACTIVE_SIREN'
@@ -224,7 +224,7 @@ export function getNightlyStats(days = 30, scope: Scope = "tel-aviv"): NightlySt
  * saferoom time starts when the first siren is received. Only completed sequences
  * (those with a following ALL_CLEAR within 30 min) are included.
  */
-export function getAvgSaferoomSecs(days = 0, scope: Scope = "tel-aviv"): number | null {
+export function getAvgSaferoomSecs(days = 0, scope: Scope = "tel-aviv-center"): number | null {
   // Nationwide pairing (any ALL_CLEAR ↔ any ACTIVE_SIREN across all areas) is
   // not meaningful, so we return null and let the UI show "—".
   if (scope === "national") return null;
@@ -272,7 +272,7 @@ export function getAvgSaferoomSecs(days = 0, scope: Scope = "tel-aviv"): number 
 }
 
 // days = 0 means all time
-export function getTotalCount(days = 0, scope: Scope = "tel-aviv"): number {
+export function getTotalCount(days = 0, scope: Scope = "tel-aviv-center"): number {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}sent_at >= strftime('%s', 'now', '-${days} days')`
@@ -285,7 +285,7 @@ export function getTotalCount(days = 0, scope: Scope = "tel-aviv"): number {
 
 export interface HourlyCount { hour: number; count: number; }
 
-export function getHourlyStats(days = 0, scope: Scope = "tel-aviv"): HourlyCount[] {
+export function getHourlyStats(days = 0, scope: Scope = "tel-aviv-center"): HourlyCount[] {
   const whereClause =
     days > 0
       ? `WHERE ${andScope(scope)}state = 'ACTIVE_SIREN'
