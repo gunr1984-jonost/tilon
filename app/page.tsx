@@ -95,7 +95,6 @@ export default function Dashboard() {
   const [daily, setDaily]           = useState<DailyStat[]>([]);
   const [nightly, setNightly]       = useState<NightlyStat[]>([]);
   const [avgSaferoomSecs, setAvgSaferoomSecs] = useState<number | null>(null);
-  const [lastSyncAt, setLastSyncAt]   = useState<Date | null>(null);
 
   const [fetchError, setFetchError] = useState(false);
 
@@ -125,7 +124,6 @@ export default function Dashboard() {
         get(`/api/stats?days=${days}&scope=${sc}`),
       ]);
       setStatus(s.status);
-      setLastSyncAt(s.lastSyncAt ? new Date(s.lastSyncAt) : null);
       setAlerts(a.alerts);
       setDaily(st.daily);
       setNightly(st.nightly ?? []);
@@ -142,11 +140,6 @@ export default function Dashboard() {
   useEffect(() => { fetchData(period, scope, { cancelPrevious: true }); }, [fetchData, period, scope]);
 
 
-  // Tick "synced X min ago" display every minute
-  useEffect(() => {
-    const tick = setInterval(() => setLastSyncAt(t => t ? new Date(t) : t), 60_000);
-    return () => clearInterval(tick);
-  }, []);
 
   // 10s background poll
   useEffect(() => {
@@ -272,14 +265,6 @@ export default function Dashboard() {
                   {filteredAlerts.length} shown
                 </span>
               </h2>
-              {lastSyncAt && (() => {
-                const minsAgo = Math.floor((Date.now() - lastSyncAt.getTime()) / 60_000);
-                return (
-                  <span className="text-xs font-mono text-zinc-700">
-                    synced {minsAgo === 0 ? "just now" : `${minsAgo}m ago`}
-                  </span>
-                );
-              })()}
             </div>
             <Tabs<TimelineFilter>
               value={tlFilter}
