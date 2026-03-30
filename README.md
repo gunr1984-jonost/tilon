@@ -16,11 +16,11 @@ This is an independent, unofficial tool built for personal and civic use. Data i
 
 ## Features
 
-- **Region selector** — dropdown with 15 city views (Bitzaron, Ein Hod, Etz Efraim, Givatayim, Kfar Sava, Lod, Mevaseret Zion, Netaim, Ness Ziyona, Petah Tikva, Ra'anana, Rehovot, Rishon LeZion East/West, Tel Aviv) plus **Nationwide**; all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
+- **Region selector** — dropdown with 19 city views (Bitzaron, Ein Hod, Etz Efraim, Givatayim, Kfar Sava, Lod, Mevaseret Zion, Netaim, Ness Ziyona, Petah Tikva, Ra'anana, Rehovot, Rishon LeZion East/West, Rosh HaEin, Tel Aviv Center/East/North/South & Jaffa) plus **Nationwide**; all stats, charts, and timeline update accordingly. City filtering uses runtime `raw_text LIKE '%<hebrew>%'` — works on all historical data without schema migration
 - **Live status** — current alert state (Active Siren / Pre-Alert / All Clear) with pulsing indicator; shown for city scopes only (hidden in Nationwide view)
 - **10s polling** — browser refreshes every 10 seconds; API responses are Cloudflare-edge-cached (`s-maxage=5–30` depending on route) so origin load is constant regardless of concurrent users; HTML shell is served `no-store` so deploys are always picked up immediately
 - **Automatic catch-up** — on every restart, syncs all messages since the last known Telegram message ID so no alerts are missed
-- **Period picker** — 28/2 (since war began), 2w, All
+- **Period picker** — 1w, 2w, 28/2 (since war began), All
 - **Bar charts** with auto-scaling granularity (daily / weekly / monthly):
   - *By type* — Pre-alerts (amber) vs Sirens (red), side by side per column
   - *Night sirens* — sirens between 21:00–06:30 only (indigo)
@@ -193,7 +193,11 @@ All API routes accept `?scope=<value>` (default: `tel-aviv`). Valid values:
 | `rehovot` | `raw_text LIKE '%רחובות%'` | Rehovot |
 | `rishon-lezion-east` | `raw_text LIKE '%ראשון לציון - מזרח%'` | Rishon LeZion East |
 | `rishon-lezion-west` | `raw_text LIKE '%ראשון לציון - מערב%'` | Rishon LeZion West |
-| `tel-aviv` | `raw_text LIKE '%תל אביב%'` | Tel Aviv |
+| `rosh-haein` | `raw_text LIKE '%ראש העין%'` | Rosh HaEin |
+| `tel-aviv-center` | `raw_text LIKE '%תל אביב - מרכז העיר%'` | Tel Aviv - Center |
+| `tel-aviv-east` | `raw_text LIKE '%תל אביב - מזרח%'` | Tel Aviv - East |
+| `tel-aviv-north` | `raw_text LIKE '%תל אביב - עבר הירקון%'` | Tel Aviv - North |
+| `tel-aviv-south` | `raw_text LIKE '%תל אביב - דרום העיר ויפו%'` | Tel Aviv - South & Jaffa |
 | `national` | `state != 'OTHER'` | All areas |
 
 City filtering is applied at query time against `raw_text` — no schema migration needed, works on all historical data. City scopes also filter `state != 'OTHER'` on top of the LIKE filter.
@@ -201,7 +205,7 @@ City filtering is applied at query time against `raw_text` — no schema migrati
 Scope differences in the UI:
 - Status badge and Avg saferoom tile are shown for city scopes only (hidden in Nationwide)
 - A footnote explains Telegram message clustering in Nationwide view
-- Unknown `?scope=` values fall back silently to `tel-aviv`
+- Unknown `?scope=` values fall back silently to `tel-aviv-center`
 
 ### Live updates
 
@@ -218,7 +222,7 @@ The bar chart auto-selects granularity based on the selected period, and always 
 
 | Period | Granularity |
 |---|---|
-| 28/2, 2w | Daily |
+| 1w, 2w, 28/2 | Daily |
 | All | Yearly |
 
 ### Night definition

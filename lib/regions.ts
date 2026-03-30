@@ -15,7 +15,11 @@ export const CITY_REGIONS = {
   "rehovot":            "רחובות",
   "rishon-lezion-east": "ראשון לציון - מזרח",
   "rishon-lezion-west": "ראשון לציון - מערב",
-  "tel-aviv":           "תל אביב",
+  "rosh-haein":         "ראש העין",
+  "tel-aviv-center":   "תל אביב - מרכז העיר",
+  "tel-aviv-east":     "תל אביב - מזרח",
+  "tel-aviv-north":    "תל אביב - עבר הירקון",
+  "tel-aviv-south":    "תל אביב - דרום העיר ויפו",
 } as const;
 
 export type CityScope = keyof typeof CITY_REGIONS;
@@ -37,7 +41,11 @@ export const SCOPE_LABELS: Record<Scope, string> = {
   "rehovot":            "Rehovot",
   "rishon-lezion-east": "Rishon LeZion East",
   "rishon-lezion-west": "Rishon LeZion West",
-  "tel-aviv":           "Tel Aviv",
+  "rosh-haein":         "Rosh HaEin",
+  "tel-aviv-center":   "Tel Aviv - Center",
+  "tel-aviv-east":     "Tel Aviv - East",
+  "tel-aviv-north":    "Tel Aviv - North",
+  "tel-aviv-south":    "Tel Aviv - South & Jaffa",
   "national":           "Nationwide",
 };
 
@@ -57,7 +65,11 @@ export const SCOPE_SUBTITLES: Record<Scope, string> = {
   "rehovot":            "Rehovot · Israel",
   "rishon-lezion-east": "Rishon LeZion East · Israel",
   "rishon-lezion-west": "Rishon LeZion West · Israel",
-  "tel-aviv":           "Tel Aviv · Israel",
+  "rosh-haein":         "Rosh HaEin · Israel",
+  "tel-aviv-center":   "Tel Aviv Center · Israel",
+  "tel-aviv-east":     "Tel Aviv East · Israel",
+  "tel-aviv-north":    "Tel Aviv North · Israel",
+  "tel-aviv-south":    "Tel Aviv South & Jaffa · Israel",
   "national":           "Nationwide · Israel",
 };
 
@@ -76,7 +88,11 @@ export const SCOPE_OPTIONS: { value: Scope; label: string }[] = [
   { value: "raanana",            label: "Ra'anana"            },
   { value: "rehovot",            label: "Rehovot"             },
   { value: "rishon-lezion-east", label: "Rishon LeZion East"  },
-  { value: "rishon-lezion-west", label: "Rishon LeZion West"  },
-  { value: "tel-aviv",           label: "Tel Aviv"            },
-  { value: "national",           label: "Nationwide"          },
+  { value: "rishon-lezion-west", label: "Rishon LeZion West"      },
+  { value: "rosh-haein",         label: "Rosh HaEin"              },
+  { value: "tel-aviv-center",   label: "Tel Aviv - Center"        },
+  { value: "tel-aviv-east",     label: "Tel Aviv - East"          },
+  { value: "tel-aviv-north",    label: "Tel Aviv - North"         },
+  { value: "tel-aviv-south",    label: "Tel Aviv - South & Jaffa" },
+  { value: "national",           label: "Nationwide"              },
 ];

@@ -23,8 +23,9 @@ function getWarDays() {
 }
 
 const PERIODS: { label: string; days: number }[] = [
-  { label: "28/2", days: getWarDays() },
+  { label: "1w",   days: 7            },
   { label: "2w",   days: 14           },
+  { label: "28/2", days: getWarDays() },
   { label: "All",  days: 0            },
 ];
 
@@ -98,7 +99,7 @@ export default function Dashboard() {
 
   const [fetchError, setFetchError] = useState(false);
 
-  const [scope, setScope]           = useState<Scope>("tel-aviv");
+  const [scope, setScope]           = useState<Scope>("tel-aviv-center");
   const [period, setPeriod]         = useState(getWarDays);
   const [chartView, setChartView]   = useState<ChartView>("type");
   const [tlFilter, setTlFilter]     = useState<TimelineFilter>("all");
