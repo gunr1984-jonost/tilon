@@ -181,25 +181,31 @@ export async function startTelegramService() {
   // asleep or connection silently dropped), reconnect and catch up immediately.
   // setInterval is paused during sleep, so on wake the first tick detects
   // staleness within ≤30s and triggers a catch-up.
+  // On repeated failures, exponential backoff (30s→60s→120s→240s→300s cap)
+  // prevents hammering Telegram during congestion. After 3 consecutive failures
+  // the MTProto client is fully disconnected and reconnected before retrying.
   let consecutiveFailures = 0;
+  let nextRetryAt = 0;
   setInterval(async () => {
     const stale = !lastSyncAt || (Date.now() - lastSyncAt.getTime()) > STALE_MS;
-    if (!stale) {
-      consecutiveFailures = 0;
-      return;
-    }
+    if (!stale) { consecutiveFailures = 0; nextRetryAt = 0; return; }
+    if (Date.now() < nextRetryAt) return; // backoff still active
+
     console.log("[tg] Stale sync detected — catching up…");
     try {
+      if (consecutiveFailures >= 3) {
+        console.warn("[tg] Forcing client reconnect after repeated failures…");
+        try { await client.disconnect(); } catch {}
+        await client.connect();
+      }
       await catchUp(client);
       consecutiveFailures = 0;
+      nextRetryAt = 0;
     } catch (err) {
       consecutiveFailures++;
-      const msg = `[tg] Catch-up failed (${consecutiveFailures} consecutive): ${(err as Error).message}`;
-      if (consecutiveFailures >= 3) {
-        console.error(msg); // escalate — something is seriously wrong
-      } else {
-        console.warn(msg);
-      }
+      const backoffSecs = Math.min(30 * Math.pow(2, consecutiveFailures - 1), 300);
+      nextRetryAt = Date.now() + backoffSecs * 1000;
+      console.error(`[tg] Catch-up failed (${consecutiveFailures}x), backing off ${backoffSecs}s: ${(err as Error).message}`);
     }
   }, HEARTBEAT_MS);
 
