@@ -12,11 +12,23 @@ import { getDb } from "./db";
 import emitter from "./emitter";
 import { invalidateCache } from "./cache";
 
-const CHANNEL = process.env.TG_CHANNEL ?? "PikudHaOref_all";
-const CATCH_UP_BATCH = 200;
-const HEARTBEAT_MS  = 30_000;       // how often we check
-const STALE_MS      = 2 * 60_000;   // how long since last sync before heartbeat acts
-const WARN_STALE_MS = 5 * 60_000;   // expose via getLastSyncAt for UI warning
+const CHANNEL           = process.env.TG_CHANNEL ?? "PikudHaOref_all";
+const CATCH_UP_BATCH    = 200;
+const HEARTBEAT_MS      = 30_000;       // how often we check
+const STALE_MS          = 2 * 60_000;   // how long since last sync before heartbeat acts
+const WARN_STALE_MS     = 5 * 60_000;   // expose via getLastSyncAt for UI warning
+const FETCH_TIMEOUT_MS  = 30_000;       // max time to wait for a single getMessages call
+
+/** Races a promise against a hard timeout, so callers never hang indefinitely. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function withTimeout(promise: Promise<any>, ms: number): Promise<any> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`FETCH_TIMEOUT: getMessages timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
 
 let lastSyncAt: Date | null = null;
 let activeClient: TelegramClient | null = null;
@@ -84,11 +96,14 @@ async function _catchUp(client: TelegramClient) {
   while (true) {
     let messages;
     try {
-      messages = await client.getMessages(CHANNEL, {
-        limit: CATCH_UP_BATCH,
-        ...(offsetId > 0 ? { offsetId } : {}),
-        ...(minId > 0 ? { minId } : {}),
-      });
+      messages = await withTimeout(
+        client.getMessages(CHANNEL, {
+          limit: CATCH_UP_BATCH,
+          ...(offsetId > 0 ? { offsetId } : {}),
+          ...(minId > 0 ? { minId } : {}),
+        }),
+        FETCH_TIMEOUT_MS
+      );
     } catch (err) {
       const waitSecs = extractFloodWaitSecs(err);
       if (waitSecs > 0) {
